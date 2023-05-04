@@ -1,0 +1,115 @@
+#Create a database JobListings
+CREATE DATABASE JobListings;
+USE JobListings;
+# The table contains basic features for jobs
+CREATE TABLE job (
+    aa INT PRIMARY KEY,
+    job_title VARCHAR(30) UNIQUE,
+    salary INT NOT NULL,
+    studies VARCHAR(30),
+    master_degree VARCHAR(3),
+    position_id INT
+ ) ;
+#Table's Description 
+DESCRIBE job;
+
+SELECT * FROM job;
+
+#Importing data at Table job
+INSERT INTO job VALUES(1,'Attorney', 77000, 'Law', 'No', 3);
+INSERT INTO job VALUES(2,'Civil Engineer', 89000,'Civil Engineering', 'Yes', 1);
+INSERT INTO job VALUES(3,'Physician', 140000, 'Medicine', 'No', 3);
+INSERT INTO job VALUES(4,'Realtor', 107000, 'Economics', 'Yes', 2);
+INSERT INTO job VALUES(5,'Project Manager', 93000, 'Mathematics', 'Yes', 3);
+INSERT INTO job VALUES(6,'Social Media Manager', 54000, 'History of Art', 'No', 1);
+INSERT INTO job VALUES(7,'Teacher', 37000, 'Pediology', 'No', 1);
+INSERT INTO job VALUES(8,'Politician', 111000, 'Political Science', 'Yes', 2);
+INSERT INTO job VALUES(9,'Delivery Boy', 23000, 'Theology', 'No', 1);
+INSERT INTO job VALUES(10,'Director of movies', 45000, 'Philosophy', 'No', 1);
+
+# Some Updates
+UPDATE job
+SET studies = 'Literature' 
+WHERE studies = 'Pedagology';
+
+UPDATE job
+SET job_title ='Academic'
+WHERE job_title = 'Delivery Boy';
+
+# Basic Queries
+SELECT * FROM job
+ORDER BY salary DESC
+LIMIT 5;
+
+SELECT job_title AS Profession, salary AS Salary, studies AS Undergraduate
+FROM job
+WHERE salary>50000
+ORDER BY salary DESC;
+
+SELECT * FROM job 
+WHERE salary>50000 AND master_degree = 'No';
+
+#The table contains info about careers' positions
+CREATE TABLE evolution (
+    position_id INT PRIMARY KEY,
+    job_experience VARCHAR(15) NOT NULL,
+    working_years VARCHAR(20) NOT NULL
+);
+DESCRIBE evolution;
+
+SELECT * FROM evolution;
+
+# Importing data at Table evolution
+INSERT INTO evolution VALUES(1,'Junior', '0-1 years');
+INSERT INTO evolution VALUES(2,'Mid', '2-3 years');
+INSERT INTO evolution VALUES(3,'Senior', '4-5 years');
+
+#Giving for each job_title the experince_level & salary
+CREATE TABLE careercast AS
+SELECT job.job_title AS Profession, evolution.job_experience AS Experience, job.salary AS Income
+FROM job
+INNER JOIN evolution ON job.position_id = evolution.position_id
+ORDER BY job.salary DESC;
+
+ALTER TABLE careercast ADD PRIMARY KEY (Profession);
+
+DESCRIBE careercast;
+SELECT * FROM careercast;
+
+#Insert a new column named working_site
+ALTER TABLE careercast
+ADD COLUMN working_site VARCHAR(16);
+
+# Importing data at Table careercast
+# Creating a query based on experience level
+UPDATE careercast c
+JOIN (
+    SELECT Profession
+    FROM careercast
+    WHERE Experience IN ('Junior', 'Mid', 'Senior')
+) c2 ON c.Profession = c2.Profession
+SET c.working_site = 
+    CASE 
+        WHEN c.Experience = 'Junior' THEN 'on-site'
+        WHEN c.Experience = 'Mid' THEN 'hybrid'
+        WHEN c.Experience = 'Senior' THEN 'remote'
+    END;
+
+# Insert a new column named working_conditions
+ALTER TABLE careercast
+ADD COLUMN working_conditions VARCHAR(16);
+
+# Add the new column by creating a filter
+UPDATE careercast c1
+JOIN (
+    SELECT Profession
+    FROM careercast
+	WHERE working_site IN ('on-site', 'hybrid', 'remote')
+) c2 ON c1.Profession = c2.Profession
+SET c1.working_conditions = 
+    CASE 
+        WHEN c1.Income > 50000 AND c1.working_site = 'remote' THEN 'excellent'
+        WHEN c1.Income > 50000 AND c1.working_site = 'hybrid' THEN 'very good'
+        WHEN c1.Income < 50000 THEN 'not very good'
+        ELSE 'good'
+    END;
